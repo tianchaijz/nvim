@@ -1,0 +1,11 @@
+*.o
+*.a
+*.so
+*.so.*
+*.lib
+*.dylib
+*.dll
+
+*.DS_Store
+*.out
+*.tar.gz
