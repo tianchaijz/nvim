@@ -23,6 +23,27 @@ return {
   },
 
   {
+    "ggandor/flit.nvim",
+    enabled = true,
+    dependencies = { "ggandor/leap.nvim" },
+    keys = function()
+      local ret = {}
+      for _, key in ipairs({ "f", "F", "t", "T" }) do
+        ret[#ret + 1] = { key, mode = { "n", "x", "o" }, desc = key }
+      end
+      return ret
+    end,
+    opts = {
+      multiline = false,
+      labeled_modes = "nx",
+      opts = {
+        safe_labels = vim.split("dqjklhbnm,ytg;ADQWERJKLHVBNMYTG", ""),
+      },
+    },
+    config = function(_, opts) require("flit").setup(opts) end,
+  },
+
+  {
     "smoka7/hop.nvim",
     lazy = false,
     event = "VeryLazy",
@@ -41,6 +62,7 @@ return {
 
       map("n", ",s", ":HopWord<CR>", { silent = true, noremap = false })
 
+      --[[
       local directions = require("hop.hint").HintDirection
       map(
         "",
@@ -54,6 +76,7 @@ return {
         function() hop.hint_char1({ direction = directions.BEFORE_CURSOR, current_line_only = true }) end,
         { remap = true }
       )
+      --]]
     end,
   },
 
