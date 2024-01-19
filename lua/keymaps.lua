@@ -160,56 +160,22 @@ function M._common()
   -- vim.cmd([[highlight ColorColumn guibg=Green]])
   nmap("<leader>hc", set_cc, { desc = "Hlighlight current column" })
   nmap("<leader>cl", function() vim.opt.cursorcolumn = not vim.opt.cursorcolumn end, { desc = "Togle cursor column" })
+end
 
-  -- https://github.com/mfussenegger/neovim/blob/a41ada760941464e8ad825d356ccdf6f65f2116c/runtime/lua/vim/lsp/buf.lua
-  -- https://github.com/Mr-LLLLL/interestingwords.nvim/blob/master/lua/interestingwords/init.lua
-  local function range_from_selection()
-    -- [bufnum, lnum, col, off]; both row and column 1-indexed
-    local start = assert(vim.fn.getpos("v"))
-    local end_ = assert(vim.fn.getpos("."))
-    local start_row = start[2]
-    local start_col = start[3]
-    local end_row = end_[2]
-    local end_col = end_[3]
-
-    -- A user can start visual selection at the end and move backwards
-    -- Normalize the range to start < end
-    if start_row == end_row and end_col < start_col then
-      end_col, start_col = start_col, end_col
-    elseif end_row < start_row then
-      start_row, end_row = end_row, start_row
-      start_col, end_col = end_col, start_col
-    end
-
-    start_row = start_row - 1
-    start_col = start_col - 1
-    end_row = end_row - 1
-
-    local mode = vim.api.nvim_get_mode().mode
-    if mode == "v" then
-      return { start_row, start_col, end_row, end_col }
-    elseif mode == "V" then
-      return { start_row, 0, end_row, -1 }
-    end
-  end
-
-  local function get_visual_selection()
-    local range = range_from_selection()
-    local lines = vim.api.nvim_buf_get_text(0, range[1], range[2], range[3], range[4], {})
-    return table.concat(lines, "\n")
-  end
-
-  local tmpfile = "/tmp/t"
+function M._paste()
+  local paste_file = "/tmp/vim_paste"
 
   local function tee()
-    local data = get_visual_selection()
-    local fd = assert(io.open(tmpfile, "w+"))
-    fd:write(data)
+    local text = Util.get_selection()
+    local fd = assert(io.open(paste_file, "w+"))
+    fd:write(text)
     fd:close()
+
+    Util.notify("Copied to " .. paste_file)
   end
 
   local function cat()
-    local fd = io.open(tmpfile, "r")
+    local fd = io.open(paste_file, "r")
     if not fd then return end
     local data = fd:read("*a")
     fd:close()
@@ -227,8 +193,36 @@ function M._common()
     end
   end
 
-  vmap(",tee", tee, { desc = "Tee" })
+  map({ "n", "v" }, ",tee", tee, { desc = "Tee" })
   nmap(",cat", cat, { desc = "Cat" })
+end
+
+-- https://github.com/jpalardy/vim-slime/blob/db486eaa39f14d130ddf6338aaa02127aa04b272/autoload/slime.vim#L76
+function M._tmux()
+  local paste_file = "/tmp/vim_tmux_paste"
+  local pane
+
+  local function send()
+    local text = Util.get_selection()
+
+    local fd = assert(io.open(paste_file, "w+"))
+    fd:write(text)
+    fd:close()
+
+    if not pane then
+      local window = vim.fn.systemlist("tmux display-message -p '#I'")[1]
+      pane = window .. ".0"
+    end
+
+    local load_cmd = "tmux load-buffer " .. paste_file
+    vim.fn.system(load_cmd)
+
+    local send_cmd = "tmux paste-buffer -d -t " .. pane
+    vim.fn.system(send_cmd)
+    -- vim.fn.system("tmux send-keys -t " .. pane .. " Enter")
+  end
+
+  map({ "n", "v" }, "<C-c><C-c>", send, { desc = "Send selected text to tmux pane" })
 end
 
 -- Copy to system clipboard
@@ -456,6 +450,8 @@ function M.init()
   M._common()
   M._comment()
   M._git()
+  M._paste()
+  M._tmux()
 end
 
 return M
