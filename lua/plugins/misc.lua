@@ -60,7 +60,8 @@ return {
 
       local map = vim.keymap.set
 
-      map("n", ",s", ":HopWord<CR>", { silent = true, noremap = false })
+      map("n", ",s", ":HopChar1<CR>", { silent = true, noremap = false })
+      map("n", ",j", ":HopWord<CR>", { silent = true, noremap = false })
 
       --[[
       local directions = require("hop.hint").HintDirection
