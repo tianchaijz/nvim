@@ -411,7 +411,7 @@ function M.plugin_cmp()
     fallback()
   end
 
-  local function cmp_shift_tab(fallback)
+  local function cmp_stab(fallback)
     if cmp.visible() then
       cmp.select_prev_item()
       return
@@ -425,17 +425,50 @@ function M.plugin_cmp()
     fallback()
   end
 
+  local function cmp_cr(fallback)
+    if cmp.visible() then
+      local confirm_opts = {
+        select = false,
+        behavior = cmp.ConfirmBehavior.Replace,
+      }
+
+      local is_insert_mode = function() return vim.api.nvim_get_mode().mode:sub(1, 1) == "i" end
+      if is_insert_mode() then -- prevent overwriting brackets
+        confirm_opts.behavior = cmp.ConfirmBehavior.Insert
+      end
+
+      local entry = cmp.get_selected_entry()
+      local is_copilot = entry and entry.source.name == "copilot"
+      if is_copilot then confirm_opts.behavior = cmp.ConfirmBehavior.Replace end
+
+      if cmp.confirm(confirm_opts) then
+        return -- success, exit early
+      end
+    end
+    fallback() -- if not exited early, always fallback
+  end
+
   return cmp.mapping.preset.insert({
+    ["<C-c>"] = cmp.mapping({ i = cmp.mapping.abort(), c = cmp.mapping.close() }),
     ["<C-n>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }),
     ["<C-p>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }),
     ["<C-u>"] = cmp.mapping(cmp.mapping.scroll_docs(-4), { "i", "c" }),
     ["<C-d>"] = cmp.mapping(cmp.mapping.scroll_docs(4), { "i", "c" }),
-    ["<C-Space>"] = cmp.mapping(cmp.mapping.complete(), { "i", "c" }),
-    ["<C-y>"] = cmp.config.disable,
-    ["<C-c>"] = cmp.mapping({ i = cmp.mapping.abort(), c = cmp.mapping.close() }),
-    ["<CR>"] = cmp.mapping.confirm({ select = true }),
+    ["<C-Space>"] = cmp.config.diable,
+    ["<C-y>"] = cmp.mapping({
+      i = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
+      c = function(fallback)
+        if cmp.visible() then
+          cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true })
+        else
+          fallback()
+        end
+      end,
+    }),
     ["<Tab>"] = cmp.mapping(cmp_tab, { "i", "s" }),
-    ["<S-Tab>"] = cmp.mapping(cmp_shift_tab, { "i", "s" }),
+    ["<S-Tab>"] = cmp.mapping(cmp_stab, { "i", "s" }),
+    ["<CR>"] = cmp.mapping(cmp_cr),
+    -- ["<CR>"] = cmp.mapping.confirm({ select = false }),
     -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
     ["<S-CR>"] = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }),
     ["<C-CR>"] = function(fallback)

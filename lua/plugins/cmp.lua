@@ -59,40 +59,63 @@ return {
         winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,CursorLine:PmenuSel,Search:None",
       }
 
+      -- https://github.com/LunarVim/LunarVim/blob/e85637c2408264f2591b9c9bca073cd58d314a97/lua/lvim/core/cmp.lua#L120
       return {
         preselect = cmp.PreselectMode.None,
-        formatting = {
-          fields = { "kind", "abbr", "menu" },
-        },
-        snippet = {
-          expand = function(args) luasnip.lsp_expand(args.body) end,
-        },
         completion = {
-          completeopt = "menu,menuone,noinsert",
-        },
-        duplicates = {
-          nvim_lsp = 1,
-          luasnip = 1,
-          cmp_tabnine = 1,
-          buffer = 1,
-          path = 1,
+          completeopt = "menu,menuone,noinsert,noselect",
+          keyword_length = 1,
         },
         confirm_opts = {
           behavior = cmp.ConfirmBehavior.Replace,
           select = false,
         },
+        formatting = {
+          fields = { "kind", "abbr", "menu" },
+          format = function(entry, item)
+            item.menu = ({
+              nvim_lsp = "[L]",
+              luasnip = "[S]",
+              buffer = "[B]",
+              path = "[P]",
+              copilot = "",
+            })[entry.source.name]
+            item.abbr = string.sub(item.abbr, 1, 32)
+            return item
+          end,
+        },
         window = {
           completion = cmp.config.window.bordered(border_opts),
           documentation = cmp.config.window.bordered(border_opts),
         },
-        mapping = require("keymaps").plugin_cmp(),
+        snippet = {
+          expand = function(args) luasnip.lsp_expand(args.body) end,
+        },
+        duplicates = {
+          nvim_lsp = 1,
+          luasnip = 1,
+          buffer = 1,
+          path = 1,
+        },
         sources = cmp.config.sources({
-          { name = "copilot", group_index = 2 },
-          { name = "nvim_lsp", group_index = 1 },
+          { name = "copilot", group_index = 2, max_item_count = 2 },
+          {
+            name = "nvim_lsp",
+            group_index = 1,
+            entry_filter = function(entry)
+              local kind = require("cmp.types.lsp").CompletionItemKind[entry:get_kind()]
+              if kind == "Field" then
+                local text = entry:get_insert_text()
+                if text:find("^_nvim_") then return false end
+              end
+              return true
+            end,
+          },
+          { name = "buffer", group_index = 1 },
           { name = "luasnip", group_index = 1 },
-          { name = "buffer", group_index = 1, keyword_length = 5 },
           { name = "path", group_index = 1 },
         }),
+        mapping = require("keymaps").plugin_cmp(),
       }
     end,
     config = function(_, opts)

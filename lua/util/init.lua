@@ -146,4 +146,12 @@ function M.get_selection()
   return text
 end
 
+function M.write_inspect_file(obj, opts, msg)
+  local fd = assert(io.open("/tmp/vim_inspect", "a+"))
+  if msg then fd:write(msg .. "\n") end
+  fd:write(vim.inspect(obj, opts))
+  fd:write("\n\n")
+  fd:close()
+end
+
 return M
