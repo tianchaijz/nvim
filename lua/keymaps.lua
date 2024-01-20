@@ -200,26 +200,35 @@ end
 -- https://github.com/jpalardy/vim-slime/blob/db486eaa39f14d130ddf6338aaa02127aa04b272/autoload/slime.vim#L76
 function M._tmux()
   local paste_file = "/tmp/vim_tmux_paste"
-  local pane
+
+  local cmd_get_curr_pane = { "tmux", "display-message", "-p", "#{pane_index}" }
+  local cmd_get_curr_window = { "tmux", "display-message", "-p", "#I" }
+  local cmd_load_buffer = { "tmux", "load-buffer", paste_file }
 
   local function send()
+    local curr_pane = vim.fn.systemlist(cmd_get_curr_pane)[1]
+    if curr_pane == "0" then
+      Util.notify("Cannot send to tmux pane(0)", vim.log.levels.ERROR)
+      return
+    end
+
     local text = Util.get_selection()
 
     local fd = assert(io.open(paste_file, "w+"))
     fd:write(text)
     fd:close()
 
-    if not pane then
-      local window = vim.fn.systemlist("tmux display-message -p '#I'")[1]
-      pane = window .. ".0"
-    end
+    local window = vim.fn.systemlist(cmd_get_curr_window)[1]
+    local pane = window .. ".0"
 
-    local load_cmd = "tmux load-buffer " .. paste_file
-    vim.fn.system(load_cmd)
+    vim.fn.system(cmd_load_buffer)
 
-    local send_cmd = "tmux paste-buffer -d -t " .. pane
-    vim.fn.system(send_cmd)
-    -- vim.fn.system("tmux send-keys -t " .. pane .. " Enter")
+    local res = vim.fn.system({ "tmux", "paste-buffer", "-d", "-t", pane })
+
+    local ok = vim.api.nvim_get_vvar("shell_error") == 0
+    if not ok then Util.notify(string.format("Send to tmux pane(%s) failed: %s", pane, res), vim.log.levels.ERROR) end
+
+    -- vim.fn.system({ "tmux", "send-keys", "-t", pane, "Enter" })
   end
 
   map({ "n", "v" }, "<C-c><C-c>", send, { desc = "Send selected text to tmux pane" })
