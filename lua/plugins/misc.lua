@@ -11,8 +11,8 @@ return {
     "Mr-LLLLL/interestingwords.nvim",
     lazy = false,
     opts = {
-      colors = { "#aeee00", "#ff0000", "#0000ff", "#b88823", "#ffa724", "#ff2c4b" },
-      -- colors = { "#8CCBEA", "#A4E57E", "#FFDB72", "#FF7272", "#FFB3FF", "#9999FF" },
+      -- colors = { "#aeee00", "#ff0000", "#0000ff", "#b88823", "#ffa724", "#ff2c4b" },
+      colors = { "#8CCBEA", "#A4E57E", "#FFDB72", "#FF7272", "#FFB3FF", "#9999FF" },
       search_count = false,
       navigation = true,
       search_key = "<leader>m",
