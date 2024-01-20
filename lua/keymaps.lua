@@ -79,17 +79,6 @@ function M._common()
   nmap("<C-k>", "<C-w>k", { desc = "Goto upper window" })
   nmap("<C-l>", "<C-w>l", { desc = "Goto right window" })
 
-  -- Kill line
-  map("i", "<C-k>", function()
-    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-    local line = vim.api.nvim_get_current_line()
-    if line ~= "" then
-      line = line:sub(0, col)
-      vim.api.nvim_buf_set_lines(0, row - 1, row, false, { line })
-    end
-  end, { desc = "Kill line" })
-  map("c", "<C-k>", "<C-f>d$<C-c><End>")
-
   -- Resize window
   nmap("<A-h>", "<cmd>resize +2<cr>", { desc = "Increase window height" })
   nmap("<A-H>", "<cmd>resize -2<cr>", { desc = "Decrease window height" })
@@ -134,11 +123,20 @@ function M._common()
 
   -- https://github.com/sei40kr/nvimacs/blob/main/plugin/nvimacs.lua
   map("!", "<C-a>", "<Home>", { desc = "Begin" })
+  map("i", "<C-e>", "<End>", { desc = "End" })
   map("!", "<C-b>", "<Left>", { desc = "Left" })
   map("!", "<C-f>", "<Right>", { desc = "Right" })
-  map("i", "<C-e>", "<End>", { desc = "End" })
-  map("i", "<C-p>", "<Up>", { desc = "Up" })
-  map("i", "<C-n>", "<Down>", { desc = "Down" })
+
+  -- Kill line
+  map("i", "<C-k>", function()
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    local line = vim.api.nvim_get_current_line()
+    if line ~= "" then
+      line = line:sub(0, col)
+      vim.api.nvim_buf_set_lines(0, row - 1, row, false, { line })
+    end
+  end, { desc = "Kill line" })
+  map("c", "<C-k>", "<C-f>d$<C-c><End>")
 
   local function set_cc()
     local win = vim.api.nvim_get_current_win()
