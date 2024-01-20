@@ -7,7 +7,9 @@ require("bootstrap")
 require("options")
 require("util.plugin").setup()
 
-require("lazy").setup({ { import = "plugins" } }, {})
+require("lazy").setup({ { import = "plugins" } }, {
+  change_detection = { enabled = false },
+})
 
 require("keymaps").init()
 require("autocmds")
