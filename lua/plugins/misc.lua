@@ -37,7 +37,7 @@ return {
       multiline = false,
       labeled_modes = "nx",
       opts = {
-        safe_labels = vim.split("dqjklhbnm,ytg;ADQWERJKLHVBNMYTG", ""),
+        safe_labels = vim.split("qjklhbnmzytg,;ASDFQWERLKJPOIUXCVMNHYTGB", ""),
       },
     },
     config = function(_, opts) require("flit").setup(opts) end,
