@@ -146,6 +146,10 @@ function M.get_selection()
   return text
 end
 
+function M.return_to_normal_mode()
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<esc>", true, true, true), "n", true)
+end
+
 function M.write_inspect_file(obj, opts, msg)
   local fd = assert(io.open("/tmp/vim_inspect", "a+"))
   if msg then fd:write(msg .. "\n") end

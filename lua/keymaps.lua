@@ -66,6 +66,14 @@ function M._common()
 
   nmap("<leader><cr>", "<cmd>noh<cr>", { desc = "Disable search highlight" })
 
+  nmap("<esc>", function()
+    if vim.fn.hlexists("Search") then
+      vim.cmd("nohlsearch")
+    else
+      Util.return_to_normal_mode()
+    end
+  end)
+
   -- :help g
   map("x", "$", "g_")
 
@@ -229,7 +237,12 @@ function M._tmux()
     -- vim.fn.system({ "tmux", "send-keys", "-t", pane, "Enter" })
   end
 
-  map({ "n", "v" }, "<C-c><C-c>", send, { desc = "Send selected text to tmux pane" })
+  local function do_send()
+    send()
+    if vim.api.nvim_get_mode().mode ~= "n" then Util.return_to_normal_mode() end
+  end
+
+  map({ "n", "v" }, "<C-c><C-c>", do_send, { desc = "Send selected text to tmux pane" })
 end
 
 -- Copy to system clipboard
