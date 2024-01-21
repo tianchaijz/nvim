@@ -35,7 +35,7 @@ function M._which_key()
     ["g"] = { name = "+goto" },
     ["]"] = { name = "+next" },
     ["["] = { name = "+prev" },
-    ["<leader>a"] = { name = "+align" },
+    ["<leader>a"] = { name = "+aerial/aligin" },
     ["<leader>b"] = { name = "+buffer" },
     ["<leader>c"] = { name = "+code/cursor/copy" },
     ["<leader>e"] = { name = "+explorer" },
@@ -487,6 +487,15 @@ function M.plugin_cmp()
   })
 end
 
+function M._explorer()
+  nmap("<leader>aa", "<cmd>AerialToggle<cr>", { desc = "Aerial code outline window" })
+  nmap("<leader>ee", "<cmd>NvimTreeToggle<cr>", { desc = "NvimTree explorer" })
+
+  local tree_api = require("nvim-tree.api")
+  nmap("<leader>er", tree_api.tree.change_root_to_node, { desc = "Explorer: change root to node" })
+  nmap("<leader>ep", tree_api.tree.change_root_to_parent, { desc = "Explorer: change root to parent" })
+end
+
 function M.init()
   M._which_key()
   M._common()
@@ -494,7 +503,7 @@ function M.init()
   M._git()
   M._paste()
   M._tmux()
+  M._explorer()
 end
 
 return M
-
