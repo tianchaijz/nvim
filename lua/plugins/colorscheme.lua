@@ -5,7 +5,7 @@ M.onedark = {
   priority = 1000,
   opts = {
     style = "darker",
-    transparent = false,
+    transparent = true,
   },
   config = function(_, opts)
     require("onedark").setup(opts)
