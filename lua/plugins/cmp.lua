@@ -67,7 +67,7 @@ return {
           keyword_length = 1,
         },
         confirm_opts = {
-          behavior = cmp.ConfirmBehavior.Replace,
+          behavior = cmp.ConfirmBehavior.Insert,
           select = false,
         },
         formatting = {
@@ -116,6 +116,24 @@ return {
           { name = "path", group_index = 1 },
         }),
         mapping = require("keymaps").plugin_cmp(),
+        cmdline = {
+          enable = false,
+          options = {
+            {
+              type = ":",
+              sources = {
+                { name = "path" },
+                { name = "cmdline" },
+              },
+            },
+            {
+              type = { "/", "?" },
+              sources = {
+                { name = "buffer" },
+              },
+            },
+          },
+        },
       }
     end,
     config = function(_, opts)

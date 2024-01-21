@@ -76,6 +76,8 @@ function M._common()
 
   -- :help g
   map("x", "$", "g_")
+  nmap("G", function() vim.cmd([[normal! Gzz]]) end)
+  vmap("G", "G$")
 
   -- Better up/down
   map({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { expr = true })
@@ -406,15 +408,9 @@ function M.plugin_cmp()
     return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
   end
 
-  local function has_copilot()
-    if vim.api.nvim_buf_get_option(0, "buftype") == "prompt" then return false end
-    local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-    return col ~= 0 and vim.api.nvim_buf_get_text(0, line - 1, 0, line - 1, col, {})[1]:match("^%s*$") == nil
-  end
-
   local function cmp_tab(fallback)
     if cmp.visible() then
-      cmp.select_next_item(has_copilot() and { behavior = cmp.SelectBehavior.Select } or {})
+      cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
       return
     end
 
@@ -449,7 +445,7 @@ function M.plugin_cmp()
     if cmp.visible() then
       local confirm_opts = {
         select = false,
-        behavior = cmp.ConfirmBehavior.Replace,
+        behavior = cmp.ConfirmBehavior.Insert,
       }
 
       local is_insert_mode = function() return vim.api.nvim_get_mode().mode:sub(1, 1) == "i" end
@@ -476,25 +472,18 @@ function M.plugin_cmp()
     ["<C-d>"] = cmp.mapping(cmp.mapping.scroll_docs(4), { "i", "c" }),
     ["<C-Space>"] = cmp.config.diable,
     ["<C-y>"] = cmp.mapping({
-      i = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
+      i = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Insert, select = true }),
       c = function(fallback)
         if cmp.visible() then
-          cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true })
+          cmp.confirm({ behavior = cmp.ConfirmBehavior.Insert, select = true })
         else
           fallback()
         end
       end,
     }),
+    ["<CR>"] = cmp.mapping(cmp_cr),
     ["<Tab>"] = cmp.mapping(cmp_tab, { "i", "s" }),
     ["<S-Tab>"] = cmp.mapping(cmp_stab, { "i", "s" }),
-    ["<CR>"] = cmp.mapping(cmp_cr),
-    -- ["<CR>"] = cmp.mapping.confirm({ select = false }),
-    -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
-    ["<S-CR>"] = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }),
-    ["<C-CR>"] = function(fallback)
-      cmp.abort()
-      fallback()
-    end,
   })
 end
 
@@ -508,3 +497,4 @@ function M.init()
 end
 
 return M
+
